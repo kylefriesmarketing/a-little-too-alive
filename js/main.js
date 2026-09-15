@@ -43,7 +43,7 @@ function drawMix(){
   }
   $('recipe-name').textContent=mix.length?nameOf(mix):'something is waiting.';
   const g=mix.length?(harvested?.genes||genesOf(mix)):null;
-  $('recipe-desc').textContent=!g?'choose an ingredient to begin.':kindOf(g,mix)==='home'?'shelter with the potential for a pulse.':kindOf(g,mix)==='plant'?'rooted in sunlight. open to suggestions.':'a small life with somewhere else to be.';
+  $('recipe-desc').textContent=SEEDS[mix.find(key=>SEEDS[key])]?.desc || (!g?'choose an ingredient to begin.':kindOf(g,mix)==='home'?'shelter with the potential for a pulse.':kindOf(g,mix)==='plant'?'rooted in sunlight. open to suggestions.':'a small life with somewhere else to be.');
   $('plant-mode').disabled=!mix.length||visiting;$('plant-center').disabled=!mix.length||visiting;
   if(guide===1&&mix.length){guide=2;updateGuide();}
 }
