@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {World} from '../js/sim.js';
+import {SEEDS,seedKind} from '../js/catalog.js';
+import {seedEffects,foodGain,materialGain} from '../js/seed-effects.js';
+import {moveLife} from '../js/ecology.js';
+import {genesOf,kindOf} from '../js/data.js';
+
+test('eighteen seeds retain their guided category while accepting mutations',()=>{assert.equal(Object.keys(SEEDS).length,18);for(const id of Object.keys(SEEDS)){const seeds=[id,'eye','heart'];assert.equal(kindOf(genesOf(seeds),seeds),seedKind([id]));const w=new World(8),e=w.plant(seeds,0,0);assert.equal(e.kind,seedKind([id]));assert.equal(typeof e.name,'string');World.restore(w.snapshot());}});
+test('orchards and elderwood provide different economic resources',()=>{assert.equal(foodGain({seeds:['fruit']}),1.8);assert.equal(materialGain({seeds:['bark']}),2.5);assert.equal(foodGain({seeds:['grass']}),1);});
+test('well, nursery and observatory have concrete effects on neighboring life',()=>{const w=new World(1),well=w.plant(['well'],0,0),young=w.plant(['hoof'],1,0),nursery=w.plant(['nursery'],0,1),spire=w.plant(['spire'],1,1);well.age=nursery.age=spire.age=20;young.age=8;seedEffects(w,well,[young],1);assert.ok(w.state.patches.some(p=>p.type==='water'));const age=young.age;seedEffects(w,nursery,[young],1);assert.ok(young.age>age);const awareness=young.knowledge;seedEffects(w,spire,[young],1);assert.ok(young.knowledge>awareness);});
+test('moths pollinate flowers and guardians drive away predators',()=>{const w=new World(9),flower=w.plant(['flower'],0,0),moth=w.plant(['wing'],1,0);moth.age=flower.age=25;flower.reproAt=60;moveLife(w,moth,1,w.state.entities);assert.equal(moth.activity,'pollinating');assert.ok(flower.reproAt<60);const guardian=w.plant(['horn'],3,0),predator=w.plant(['claw'],4,0);guardian.age=predator.age=40;seedEffects(w,guardian,[predator],1);moveLife(w,predator,.25,w.state.entities);assert.equal(predator.activity,'avoiding a guardian');});
+test('granaries and workshops consume stored food for their useful effects',()=>{const w=new World(11),granary=w.plant(['granary'],0,0),workshop=w.plant(['workshop'],1,0),grazer=w.plant(['hoof'],0,1);granary.age=workshop.age=40;grazer.energy=30;const town={id:20,x:0,z:0,food:2,materials:0};w.state.societies.push(town);seedEffects(w,granary,[grazer],1);assert.ok(grazer.energy>30&&town.food<2);const food=town.food;seedEffects(w,workshop,[],1);assert.ok(town.materials>0&&town.food<food);town.food=0;const energy=grazer.energy;seedEffects(w,granary,[grazer],1);assert.equal(grazer.energy,energy);});
+test('mixed new lineages remain deterministic across a JSON save',()=>{const w=new World(718);for(const [i,id]of Object.keys(SEEDS).entries())w.plant([id],Math.cos(i)*3,Math.sin(i)*3);w.advance(30);const copy=World.restore(JSON.parse(JSON.stringify(w.snapshot())));w.advance(45);copy.advance(45);assert.deepEqual(copy.snapshot(),w.snapshot());});

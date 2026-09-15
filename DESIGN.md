@@ -50,3 +50,11 @@ He approved the generated art-direction study as "Much closer — use this as th
 The second playable foundation uses one spherical coordinate system for terrain, creatures, pointer picking, and camera navigation; a real globe; 4/6-legged articulated phenotypes; parenting, herd cohesion, hunting and fleeing; food collection and material-funded construction; procedural forest, terrain, and architecture; a clearly labeled populated scenario; empty-world creation; archived world switching; and v1-to-v2 save migration.
 
 Remaining gaps: detailed authored art, richer body editing, deeper society and belief systems, large-scale ecosystem simulation, richer living-city behavior, and real-time visits. The world is geographically broad but the simulation remains capped at 180 active entities. Existing snapshot visits and seed gifts are retained.
+
+## Guided creation and seed roles (v0.3)
+
+The seed bench has Flora, Fauna, and Buildings tabs, with six starting seeds per category (18 additions) and the original eight mutation ingredients. Picking a starting seed anchors its category; the optional mutation drawer preserves experimentation. The cards render previews from the actual game models. Suggested steps track habitat, animals, and a first settlement without locking any tools.
+
+New gameplay includes pollination, fruit-rich forage, timber gathering, armored beetles, guardians, grief recycling, wells, nurseries, granaries, workshops, and observatories. Building effects use real energy, age, awareness, food, or material values. Saved worlds and gift/postcard recipes retain the expanded seeds.
+
+Graphics now include sculpted/pigmented bodies, separate silhouettes for each seed, branching plant models, distinct utility buildings, smoother limbs and leaves, leaf-textured canopies, and a sky gradient. This remains procedural stylized art; the approved concept remains the longer-term fidelity target. Desktop/mobile checks: `node tools/catalog-browser-test.cjs`; simulation: `npm test`.

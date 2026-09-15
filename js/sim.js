@@ -1,3 +1,4 @@
+import {seedEffects,foodGain} from './seed-effects.js';
 import {distance,validPosition,landAt} from './planet.js';
 import {moveLife,updateSettlements} from './ecology.js';
 import { VERSION,LIMIT,RADIUS,GENE_KEYS,INGREDIENTS,genesOf,kindOf,nameOf } from './data.js';
@@ -32,7 +33,7 @@ export class World {
     if(!landAt(x,z)) return null;
     if(this.state.entities.length>=LIMIT)return null;
     const genes=extra.genes?Object.fromEntries(GENE_KEYS.map(k=>[k,clamp(extra.genes[k]||0)])):genesOf(seeds);
-    const e={id:this.state.nextId++, seeds:[...seeds], genes, name:nameOf(seeds,genes), kind:kindOf(genes), x,z, age:0, energy:80, health:100, love:genes.love*.25, fear:0, grief:0, knowledge:0, faith:'unaware', generation:extra.generation||1, parentIds:extra.parentIds||[], memory:extra.memory||'a first breath in unfamiliar soil.', control:'wild', phase:'seed', motion:this.random()*6.28, heading:this.random()*6.28, reproAt:28+this.random()*15, talkAt:10+this.random()*20, society:null, residents:0, size:1, pulse:0, bornAt:this.state.time};
+    const e={id:this.state.nextId++, seeds:[...seeds], genes, name:nameOf(seeds,genes), kind:kindOf(genes,seeds), x,z, age:0, energy:80, health:100, love:genes.love*.25, fear:0, grief:0, knowledge:0, faith:'unaware', generation:extra.generation||1, parentIds:extra.parentIds||[], memory:extra.memory||'a first breath in unfamiliar soil.', control:'wild', phase:'seed', motion:this.random()*6.28, heading:this.random()*6.28, reproAt:28+this.random()*15, talkAt:10+this.random()*20, society:null, residents:0, size:1, pulse:0, bornAt:this.state.time};
     this.state.entities.push(e);this.state.started=true;
     if(extra.birth) {this.state.stats.born++;} else {this.state.stats.planted++;this.milestone('life','you planted something. it took that personally.',e);}
     this.discover(e);return e;
@@ -40,7 +41,7 @@ export class World {
   graft(id,seeds,inherited=null) {
     const e=this.find(id);if(!e)return null;
     const donor=inherited||genesOf(seeds);for(const k of GENE_KEYS)e.genes[k]=clamp(e.genes[k]*.8+donor[k]*.65);
-    e.seeds=[...new Set([...seeds,...e.seeds])].slice(0,3);e.kind=kindOf(e.genes);e.name=nameOf(e.seeds,e.genes);e.pulse=1;e.memory='the hand changed what i was.';this.state.stats.grafted++;this.discover(e);this.emit(e.name.toLowerCase()+' grows around its new inheritance.','graft',e);return e;
+    e.seeds=[...new Set([...seeds,...e.seeds])].slice(0,3);e.kind=kindOf(e.genes,e.seeds);e.name=nameOf(e.seeds,e.genes);e.pulse=1;e.memory='the hand changed what i was.';this.state.stats.grafted++;this.discover(e);this.emit(e.name.toLowerCase()+' grows around its new inheritance.','graft',e);return e;
   }
   affect(tool,x,z) {
     const near=this.state.entities.filter(e=>Math.hypot(e.x-x,e.z-z)<4.2);
@@ -50,7 +51,7 @@ export class World {
       if(tool==='love'){e.love=clamp(e.love+.55);e.fear*=.5;e.health=Math.min(100,e.health+12);e.knowledge+=e.genes.mind*2;}
       if(tool==='fear'){e.fear=clamp(e.fear+.65);e.love*=.65;e.knowledge+=e.genes.mind*3;}
       if(tool==='rain'){e.energy=Math.min(100,e.energy+22);e.grief*=.5;e.health=Math.min(100,e.health+8);}
-      if(tool==='mutate'){const key=GENE_KEYS[Math.floor(this.random()*GENE_KEYS.length)];e.genes[key]=clamp(e.genes[key]+.4);e.kind=kindOf(e.genes);e.memory='something impossible has become part of me.';}
+      if(tool==='mutate'){const key=GENE_KEYS[Math.floor(this.random()*GENE_KEYS.length)];e.genes[key]=clamp(e.genes[key]+.4);e.kind=kindOf(e.genes,e.seeds);e.memory='something impossible has become part of me.';}
     }
     if(near.length)this.emit(({love:'a little affection spreads further than you intended.',fear:'they do not know why. they remember who.',rain:'the soil drinks. so does everything else.',mutate:'the rules of inheritance have become a suggestion.'})[tool],'intervention',near[0]);
     return near.length;
@@ -79,6 +80,7 @@ export class World {
       if(e.phase==='seed'){e.phase='growing';e.pulse=1;}
       if(e.phase==='growing'&&e.age>9)e.phase='mature';
       const near=population.filter(n=>n.id!==e.id&&dist(e,n)<4.6);
+      seedEffects(this,e,near,dt);
       const friends=near.filter(n=>n.genes.fang<.65||n.control==='gentle');
       const water=s.patches.filter(p=>p.type==='water'&&Math.hypot(e.x-p.x,e.z-p.z)<p.r);
       e.love=clamp(e.love+(friends.length*.009*e.genes.love-.004)*dt);
@@ -93,7 +95,7 @@ export class World {
       if(e.kind==='creature'||e.phase==='walking'||e.phase==='city')moveLife(this,e,dt,population);
       if(e.kind==='creature'&&e.energy<85){
         const meal=near.find(n=>n.kind==='plant'&&n.age>6&&dist(e,n)<1.7);
-        if(meal){e.energy=Math.min(100,e.energy+dt*4);meal.energy-=dt*1.2;
+        if(meal){e.energy=Math.min(100,e.energy+dt*4*foodGain(meal));meal.energy-=dt*1.2;
           if(e.genes.fang>.6&&e.control!=='gentle'){meal.health-=dt*1.6;meal.fear=clamp(meal.fear+dt*.05);}}
       }
       if(e.genes.heat>.6&&e.genes.fang>.45&&e.fear>.55&&e.control!=='gentle'){
@@ -173,6 +175,7 @@ export function validate(s) {
     for(const k of ['x','z','age','energy','health','love','fear','grief','knowledge','generation','motion','heading','reproAt','talkAt','residents','size','pulse','bornAt'])if(!Number.isFinite(e[k]))fail();
     if(!Array.isArray(e.parentIds)||e.parentIds.length>2||e.parentIds.some(id=>!Number.isInteger(id)||id<1))fail();
     if(e.carrying!==undefined&&(!Number.isFinite(e.carrying)||e.carrying<0||e.carrying>10))fail();
+    if(e.carryingWood!==undefined&&(!Number.isFinite(e.carryingWood)||e.carryingWood<0||e.carryingWood>30))fail();
     if(e.activity!==undefined&&(typeof e.activity!=='string'||e.activity.length>80))fail();
     if(e.age<0||e.generation<1||!Number.isInteger(e.generation)||e.generation>100000)fail();
     if(!validPosition(e.x,e.z)||e.size<.1||e.size>4||!['plant','home','creature'].includes(e.kind)||!['wild','gentle','rooted'].includes(e.control)||!['seed','growing','mature','walking','city'].includes(e.phase))fail();

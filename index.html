@@ -7,7 +7,7 @@
   <meta name="description" content="Anything is a seed. Grow creatures, crossbreed buildings, and watch your world become a little too alive. A free experimental god game by Dirty Boy Devs.">
   <title>A Little Too Alive — a DIRTY BOY DEVS game</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="planet.css">
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="planet.css"><link rel="stylesheet" href="creation.css">
   <script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
 </head>
 <body>
@@ -23,15 +23,15 @@
     <nav id="world-nav" aria-label="Explore your planet"><button id="planet-view">◎ <span>planet</span></button><button id="find-herd">herds</button><button id="find-town">settlements</button><button id="find-city">living city</button><span id="camera-scale">ECOSYSTEM</span></nav><div id="counts"><span><b id="population">0</b> alive</span><span><b id="discoveries">0</b> discoveries</span><span><b id="towns">0</b> societies</span></div>
     <aside id="workbench" class="panel">
       <div class="panel-heading"><span class="eyebrow">01 / THE SEED BENCH</span><button id="bench-close" class="mobile-only" aria-label="Close seed bench">×</button></div>
-      <h2>anything is a seed.</h2><p class="muted">choose up to three ingredients.<br>let the world finish the thought.</p>
-      <div id="ingredients" class="ingredients" aria-label="Ingredients"></div>
+      <h2>grow a living world.</h2><div id="creation-tabs" class="creation-tabs" role="tablist" aria-label="Creation category"></div><p id="category-hint"></p><div id="seed-catalog" class="seed-catalog" role="tabpanel"></div><p id="seed-tip"></p><details class="mutation-drawer"><summary>Customize with mutation ingredients</summary>
+      <div id="ingredients" class="ingredients" aria-label="Ingredients"></div></details>
       <div class="mix-head"><span class="eyebrow">YOUR EXPERIMENT</span><button id="clear-mix" class="text-button">clear</button></div>
       <div id="mix" aria-label="Chosen ingredients"></div>
       <div id="recipe-name">something is waiting.</div>
       <p id="recipe-desc" class="muted">an empty world. a questionable idea.</p>
       <button id="plant-mode" class="primary">plant this seed <span>↗</span></button>
       <button id="plant-center" class="text-button wide">or plant in an open spot</button>
-      <div class="bench-bottom"><button id="library">field guide <span id="library-count">0</span></button><button id="help">how to play ?</button></div>
+      <div id="creation-guide" class="creation-guide" aria-label="Suggested world-building steps"></div><div class="bench-bottom"><button id="library">field guide <span id="library-count">0</span></button><button id="help">how to play ?</button></div>
     </aside>
     <aside id="observer" class="panel">
       <div class="panel-heading"><span class="eyebrow">02 / FIELD NOTES</span><button id="observer-close" class="mobile-only" aria-label="Close field notes">×</button></div>

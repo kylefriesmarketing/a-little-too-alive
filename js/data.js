@@ -1,3 +1,4 @@
+import {SEEDS,seedKind} from './catalog.js';
 export const SAVE_KEY = 'a-little-too-alive-save';
 export const VERSION = 2;
 export const LIMIT = 180;
@@ -5,6 +6,7 @@ import {LONGITUDE_LIMIT} from './planet.js';
 export {groundAt} from './planet.js';
 export const RADIUS = LONGITUDE_LIMIT;
 export const INGREDIENTS = {
+  ...SEEDS,
   moss:  { name: 'Moss',  mark: '✳', color: '#b4d48a', desc: 'Roots. Sunlight. A tendency to spread.', genes: {flora: 1} },
   eye:   { name: 'Eye',   mark: '◉', color: '#b8c9f0', desc: 'Awareness. Curiosity. Eventually, questions.', genes: {mind: 1, motion: .6} },
   heart: { name: 'Heart', mark: '♡', color: '#ef9caa', desc: 'Affection. A pulse. Something to lose.', genes: {love: 1, motion: .3} },
@@ -39,8 +41,9 @@ export function genesOf(seeds) {
   for (const k of GENE_KEYS) genes[k] = Math.min(1,genes[k]);
   return genes;
 }
-export function kindOf(g) { return g.build >= .3 ? 'home' : g.flora >= .6 ? 'plant' : 'creature'; }
+export function kindOf(g,seeds=[]) { return seedKind(seeds)||(g.build >= .3 ? 'home' : g.flora >= .6 ? 'plant' : 'creature'); }
 export function nameOf(seeds,genes=genesOf(seeds)) {
+  const base=seeds.find(k=>SEEDS[k]);if(base){const mods=seeds.filter(k=>k!==base).map(k=>INGREDIENTS[k].name);return (mods.length?mods.join(' ')+' ':'')+SEEDS[base].name;}
   const signature = [...seeds].sort().join('+');
   if (KNOWN[signature]) return KNOWN[signature];
   if (seeds.length === 1) return {moss:'Mossling',eye:'Peeker',heart:'Pulse',brick:'Sleeping House',tooth:'Nibbler',tear:'Raindrop',ember:'Sparkling',echo:'Murmur'}[seeds[0]];

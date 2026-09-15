@@ -1,3 +1,5 @@
+import {createCatalog} from './catalog-ui.js';
+import {SEEDS,MUTATIONS} from './catalog.js';
 import {seedLivingWorld} from './ecology.js';
 import {anatomy} from './anatomy.js';
 import {landAt} from './planet.js';
@@ -8,8 +10,8 @@ import {INGREDIENTS,SAVE_KEY,LIMIT,RADIUS,genesOf,nameOf,kindOf,MILESTONES} from
 const $=id=>document.getElementById(id);
 const node=(tag,text,cls)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;if(cls)el.className=cls;return el;};
 const button=(text,fn,cls)=>{const b=node('button',text,cls);b.type='button';b.onclick=fn;return b;};
-let world=new World(crypto.getRandomValues(new Uint32Array(1))[0]),ownWorld=null,visiting=false,launched=false,paused=false,speed=1,mix=['moss','eye'],selected=null,tool='plant',guide=0,tab='inspect',toastTimer,dirty=true,uiStamp='',lastSave=0,accum=0,lastTime=performance.now(),lastUI=0,lastSync=0;
-let harvested=null;
+let world=new World(crypto.getRandomValues(new Uint32Array(1))[0]),ownWorld=null,visiting=false,launched=false,paused=false,speed=1,mix=['grass'],selected=null,tool='plant',guide=0,tab='inspect',toastTimer,dirty=true,uiStamp='',lastSave=0,accum=0,lastTime=performance.now(),lastUI=0,lastSync=0;
+let harvested=null,catalogUI;
 let saveProblem='';
 try{const raw=localStorage.getItem(SAVE_KEY);if(raw){world=World.restore(JSON.parse(raw));if(world.state.offline){const gap=Math.min(1800,(Date.now()-world.state.savedAt)/1000);if(gap>10){world.advance(gap);world.emit('while you were away, '+Math.floor(gap/60)+' minutes passed in the garden.','event');}}}}catch(e){saveProblem='Your previous save could not be opened. It has been kept; export it from postcards before starting over.';}
 if(!world.state.started&&!saveProblem){seedLivingWorld(world);world.state.started=false;}
@@ -35,20 +37,22 @@ function showWorlds(){showModal('Your worlds',c=>{c.append(node('p','Your curren
 function updateGuide(){const steps={1:'1. choose ingredients at the seed bench. try moss + eye.',2:'2. tap the ground, or “plant in an open spot”.',3:'3. plant a few different experiments near one another.',4:'4. choose inspect. get to know something you made.'};$('guidance').hidden=!guide;$('guidance-text').textContent=steps[guide]||'';}
 $('skip-guide').onclick=()=>{guide=0;updateGuide();};
 function drawMix(){
+  catalogUI?.update(mix,world);
   $('mix').replaceChildren();for(let i=0;i<3;i++){
     const seed=mix[i];if(seed){const b=button(INGREDIENTS[seed].mark,()=>{mix.splice(i,1);harvested=null;drawMix();},'mix-slot filled');b.setAttribute('aria-label','Remove '+INGREDIENTS[seed].name);b.style.setProperty('--seed-color',INGREDIENTS[seed].color);$('mix').appendChild(b);}else $('mix').appendChild(node('div','+','mix-slot'));
   }
   $('recipe-name').textContent=mix.length?nameOf(mix):'something is waiting.';
   const g=mix.length?(harvested?.genes||genesOf(mix)):null;
-  $('recipe-desc').textContent=!g?'choose an ingredient to begin.':kindOf(g)==='home'?'shelter with the potential for a pulse.':kindOf(g)==='plant'?'rooted in sunlight. open to suggestions.':'a small life with somewhere else to be.';
+  $('recipe-desc').textContent=!g?'choose an ingredient to begin.':kindOf(g,mix)==='home'?'shelter with the potential for a pulse.':kindOf(g,mix)==='plant'?'rooted in sunlight. open to suggestions.':'a small life with somewhere else to be.';
   $('plant-mode').disabled=!mix.length||visiting;$('plant-center').disabled=!mix.length||visiting;
   if(guide===1&&mix.length){guide=2;updateGuide();}
 }
-for(const [key,def]of Object.entries(INGREDIENTS)){
+for(const [key,def]of Object.entries(INGREDIENTS).filter(([key])=>MUTATIONS.includes(key))){
   const b=button('',()=>{if(mix.length===3){toast('Three ingredients per seed. Remove one from the mix to make room.');return;}mix.push(key);harvested=null;drawMix();audio.tone(300+Object.keys(INGREDIENTS).indexOf(key)*45,.14);},'ingredient');
   b.style.setProperty('--seed-color',def.color);b.title=def.desc;b.setAttribute('aria-label','Add '+def.name+'. '+def.desc);b.append(node('span',def.mark,'glyph'),node('span',def.name));$('ingredients').appendChild(b);
 }
-$('clear-mix').onclick=()=>{mix=[];harvested=null;drawMix();};drawMix();
+$('clear-mix').onclick=()=>{mix=[];harvested=null;drawMix();};
+catalogUI=createCatalog({choose(seeds){mix=seeds;harvested=null;drawMix();setTool('plant');},thumbnail(id){return view.thumbnail({id:0,seeds:[id],genes:genesOf([id]),kind:kindOf(genesOf([id]),[id]),phase:'mature',age:40,size:1,residents:0});}});drawMix();
 const HINTS={plant:'tap the soil to plant. there are no resource costs.',inspect:'touch a living thing to read its story.',graft:'touch a living thing to graft your current mix into it.',love:'touch the world. affection spreads to nearby life.',fear:'touch the world. fear has consequences.',rain:'touch the soil. a pool becomes part of the ecosystem.',mutate:'touch the world to alter traits in a small area.'};
 function setTool(t){tool=t;view.tool=t;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===t));$('tool-hint').textContent=visiting?'a postcard is a visit. the original world stays with its owner.':HINTS[t];if(t!=='plant')$('workbench').classList.remove('open');}
 document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
@@ -82,9 +86,10 @@ function buildSpecimen(e){
   const actions=node('div',undefined,'specimen-actions');actions.append(button('harvest a seed',()=>{const live=world.find(selected);if(!live)return;mix=[...live.seeds];harvested={genes:{...live.genes},memory:live.memory,generation:live.generation};drawMix();setTool('plant');$('workbench').classList.add('open');if(innerWidth<=900)$('observer').classList.remove('open');toast('a seed with its inherited traits. the original keeps living.');}),button('copy a gift',()=>giftSeed(world.find(selected))),button('look closer',()=>{const live=world.find(selected);if(live)view.focus(live);}),button('compost',()=>{if(visiting){toast('Visitors cannot change the original world.');return;}world.remove(selected,'was composted');selected=null;dirty=true;save();}));content.append(actions);
 }
 function updateUI(){
+  catalogUI?.update(mix,world);
   const s=world.state;$('world-name').textContent=s.name;$('world-time').textContent='day '+(1+Math.floor(s.time/60));$('population').textContent=s.entities.length;$('discoveries').textContent=Object.keys(s.discoveries).length;$('towns').textContent=s.societies.length;$('library-count').textContent=Object.keys(s.discoveries).length;
   const e=world.find(selected);$('empty-inspect').hidden=!!e;$('specimen').hidden=!e;
-  if(e){if($('specimen').dataset.id!==String(e.id))buildSpecimen(e);const c=$('specimen');c.querySelector('[data-field=kind]').textContent=(e.phase==='city'?'living city':e.kind)+' / '+(e.phase==='seed'?'germinating':e.phase);c.querySelector('[data-field=name]').textContent=e.name;c.querySelector('[data-field=meta]').textContent='generation '+e.generation+' · '+Math.floor(e.age)+'s old'+(e.residents?' · '+e.residents+' neighbors':'');const phenotype=anatomy(e.genes);c.querySelector('[data-field=anatomy]').textContent=e.kind==='creature'?phenotype.legs+' legs · '+phenotype.diet+' · '+(e.activity||'discovering the world')+(e.parentIds.length?' · parents #'+e.parentIds.join(' + #'):''):e.kind==='home'?((world.state.societies.find(t=>t.id===e.society)?.food||0).toFixed(1)+' food · '+(world.state.societies.find(t=>t.id===e.society)?.materials||0).toFixed(1)+' building material'):'Sun-fed life · habitat and food for nearby species';c.querySelector('[data-field=memory]').textContent='“'+e.memory+'”';
+  if(e){if($('specimen').dataset.id!==String(e.id))buildSpecimen(e);const c=$('specimen');c.querySelector('[data-field=kind]').textContent=(e.phase==='city'?'living city':e.kind)+' / '+(e.phase==='seed'?'germinating':e.phase);c.querySelector('[data-field=name]').textContent=e.name;c.querySelector('[data-field=meta]').textContent='generation '+e.generation+' · '+Math.floor(e.age)+'s old'+(e.residents?' · '+e.residents+' neighbors':'');const phenotype=anatomy(e.genes,e.seeds);c.querySelector('[data-field=anatomy]').textContent=e.kind==='creature'?phenotype.legs+' legs · '+phenotype.diet+' · '+(e.activity||'discovering the world')+(e.parentIds.length?' · parents #'+e.parentIds.join(' + #'):''):e.kind==='home'?((world.state.societies.find(t=>t.id===e.society)?.food||0).toFixed(1)+' food · '+(world.state.societies.find(t=>t.id===e.society)?.materials||0).toFixed(1)+' building material'):'Sun-fed life · habitat and food for nearby species';c.querySelector('[data-field=memory]').textContent='“'+e.memory+'”';
     for(const key of ['health','love','fear','knowledge']){const val=key==='health'?e.health:key==='knowledge'?Math.min(100,e.knowledge/25*100):e[key]*100;c.querySelector('[data-value='+key+']').textContent=key==='knowledge'?e.faith:Math.round(val)+'%';c.querySelector('[data-bar='+key+']').style.width=Math.max(0,Math.min(100,val))+'%';}
   }
   const stamp=s.serial+'|'+tab;if(stamp!==uiStamp){uiStamp=stamp;

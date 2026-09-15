@@ -43,3 +43,11 @@ Scroll or pinch from a creature to the planet. At planet scale, tap a continent 
 Start with the populated living-world scenario or an empty planet. The Worlds menu archives the current save before switching. Older v1 saves migrate to v2 without losing their organisms or milestones. This is a playable procedural foundation; the approved concept art remains a visual target.
 
 Run both simulation suites with `npm test`. Browser checks: `node tools/planet-browser-test.cjs` (requires the configured local Playwright/Chrome runtime).
+
+## Guided creation and seed roles (v0.3)
+
+The seed bench has Flora, Fauna, and Buildings tabs, with six starting seeds per category (18 additions) and the original eight mutation ingredients. Picking a starting seed anchors its category; the optional mutation drawer preserves experimentation. The cards render previews from the actual game models. Suggested steps track habitat, animals, and a first settlement without locking any tools.
+
+New gameplay includes pollination, fruit-rich forage, timber gathering, armored beetles, guardians, grief recycling, wells, nurseries, granaries, workshops, and observatories. Building effects use real energy, age, awareness, food, or material values. Saved worlds and gift/postcard recipes retain the expanded seeds.
+
+Graphics now include sculpted/pigmented bodies, separate silhouettes for each seed, branching plant models, distinct utility buildings, smoother limbs and leaves, leaf-textured canopies, and a sky gradient. This remains procedural stylized art; the approved concept remains the longer-term fidelity target. Desktop/mobile checks: `node tools/catalog-browser-test.cjs`; simulation: `npm test`.

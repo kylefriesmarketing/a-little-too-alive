@@ -1,6 +1,7 @@
+import {seedRole} from './catalog.js';
 // A heritable phenotype, shared by movement rules, rendering and field notes.
-export function anatomy(g){return {
-  legs:g.water>.65&&g.motion>.65?6:4,
+export function anatomy(g,seeds=[]){const role=seedRole({seeds});return {
+  legs:role==='hand'?2:role==='wing'?0:role==='shell'?6:g.water>.65&&g.motion>.65?6:4,
   legLength:.48+g.motion*.62,
   neck:.2+g.mind*.75+g.flora*.25,
   bulk:.65+g.love*.35+g.fang*.2,
