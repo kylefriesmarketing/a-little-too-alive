@@ -1,0 +1,42 @@
+# A Little Too Alive
+
+Working title. Kyle selected a combination of concept 1 (anything becomes alive) and concept 4 (everything is a seed) after a 35-question interview on 2026-09-15.
+
+## Agreed direction
+
+- Standalone browser game in THE HOUSE. Phone and desktop. Audience: strangers. Desired reaction: “what the hell?”
+- Building and growth. Creative freedom, surprises, and visible transformations take priority.
+- God view plus experiments. Mix ingredients, directly change traits, and let life evolve. Simple controls with depth.
+- Whole-world ambition: organisms, buildings, societies, ecosystems. Stylized, organic, surreal 3D.
+- The player's creations determine the mood. Adult horror and mature themes are acceptable; not a requirement to add explicit content.
+- Start with an empty world and a few ingredients. Unlimited power, ecological consequences. Catastrophes persist; rebuilding is part of play.
+- Control per creation: free will, gentle, or rooted. Awareness develops: obliviousness, curiosity, fear, and eventual recognition of the creator.
+- Sessions about 20–40 minutes. Replay motivations are mixed. Success means world milestones.
+- Players can choose whether time passes while away.
+- Visible events, creature chatter, and a readable chronicle. Evolving synthesized ambience and organic sounds; muted play remains understandable.
+- Visitors explore copies. Originals remain with owners. Changes need owner consent. Gifts can carry inherited traits, memories, and ideas.
+- Shareable short clips are the main viral output. No claim that virality is guaranteed.
+- Guided or unguided opening.
+- Broad rough sandbox first, then deepen the strongest systems. Zero paid services or asset purchases.
+
+## First playable scope
+
+Eight ingredients, combinations up to three ingredients; germination; hereditary crossbreeding; phenotype-driven procedural models; hunger, predation, emotion, water, fire, and fear thorns; settlements; walking homes; living-city fusion; limited culture rules; creature lines; milestones and chronicle; individual controls; harvest and graft; local persistence; bounded offline simulation; read-only world postcards, consent-based seed gifts; browser clip recording.
+
+This is a finite local simulation, not unrestricted text-to-world AI. Cross-player interactions use snapshots and copied gifts, not concurrent server simulation. Culture is a small causal ruleset rather than a comprehensive society model. Postcard cultures and memories persist in copies; seed gifts inherit genes and a memory, not entire political systems. Emergent physics and arbitrary object generation are future work.
+
+## THE HOUSE contract
+
+- Save: `a-little-too-alive-save`, version 1; `started`, `milestones`, `discoveries`, `stats` are cheap to read.
+- Collectible: a heartseed in a glass bell, earned by `milestones.city`.
+- Doorway: a little terrarium; hint: `everything is a seed. even the house.`
+- Return link: https://kylefriesmarketing.github.io/games/
+- Credit: a DIRTY BOY DEVS game.
+
+## What to deepen after Kyle plays
+
+1. Broaden ingredient-to-anatomy combinations and meaningful ecosystem feedback.
+2. Improve cities as organisms and more surprising inherited behaviors.
+3. Persist deeper creature relationships and culture.
+4. Add live visits only when a free, sustainable hosting design is chosen.
+5. Develop the most interesting player-generated moments, not resource grind.
