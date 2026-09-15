@@ -31,7 +31,7 @@ test('invalid and oversized postcards are refused before replacing state',()=>{
   const w=new World();w.plant(['eye'],0,0);const s=w.snapshot();s.entities[0].x=Infinity;assert.throws(()=>World.restore(s));
   s.entities[0].x=0;s.entities[0].genes.mind=99;assert.throws(()=>World.restore(s));
   s.entities[0].genes.mind=1;s.entities[0].seeds=['__proto__'];assert.throws(()=>World.restore(s));
-  assert.throws(()=>w.plant(['missing'],0,0));assert.equal(w.plant(['moss'],100,100),null);
+  assert.throws(()=>w.plant(['missing'],0,0));assert.equal(w.plant(['moss'],10000,10000),null);
 });
 test('population remains bounded through a long deterministic ecosystem run',()=>{
   const a=new World(417),b=new World(417);for(let i=0;i<20;i++){const p=[['moss','heart'],['moss','eye'],['eye','tooth'],['brick','heart']][i%4];a.plant(p,Math.cos(i)*5,Math.sin(i)*5);b.plant(p,Math.cos(i)*5,Math.sin(i)*5);}

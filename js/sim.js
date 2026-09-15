@@ -1,6 +1,8 @@
+import {distance,validPosition,landAt} from './planet.js';
+import {moveLife,updateSettlements} from './ecology.js';
 import { VERSION,LIMIT,RADIUS,GENE_KEYS,INGREDIENTS,genesOf,kindOf,nameOf } from './data.js';
 const clamp = (n,a=0,b=1) => Math.max(a,Math.min(b,n));
-const dist = (a,b) => Math.hypot(a.x-b.x,a.z-b.z);
+const dist = distance;
 const clone = v => JSON.parse(JSON.stringify(v));
 const TOWNS = ['Softmouth','Little Elsewhere','The Warm Place','New Almost','Moss Mercy','The Unfolding','Tender Teeth','Hush'];
 export class World {
@@ -27,7 +29,7 @@ export class World {
   }
   plant(seeds,x,z,extra={}) {
     if(!Array.isArray(seeds)||!seeds.length||seeds.length>3||seeds.some(s=>!Object.hasOwn(INGREDIENTS,s)))throw new Error('Choose one to three known ingredients.');
-    if(!Number.isFinite(x)||!Number.isFinite(z)||Math.hypot(x,z)>RADIUS-.7) return null;
+    if(!landAt(x,z)) return null;
     if(this.state.entities.length>=LIMIT)return null;
     const genes=extra.genes?Object.fromEntries(GENE_KEYS.map(k=>[k,clamp(extra.genes[k]||0)])):genesOf(seeds);
     const e={id:this.state.nextId++, seeds:[...seeds], genes, name:nameOf(seeds,genes), kind:kindOf(genes), x,z, age:0, energy:80, health:100, love:genes.love*.25, fear:0, grief:0, knowledge:0, faith:'unaware', generation:extra.generation||1, parentIds:extra.parentIds||[], memory:extra.memory||'a first breath in unfamiliar soil.', control:'wild', phase:'seed', motion:this.random()*6.28, heading:this.random()*6.28, reproAt:28+this.random()*15, talkAt:10+this.random()*20, society:null, residents:0, size:1, pulse:0, bornAt:this.state.time};
@@ -88,19 +90,7 @@ export class World {
       if(rules?.rule==='kinship'){e.love=clamp(e.love+dt*.015);e.health=Math.min(100,e.health+dt*.1);}
       if(rules?.rule==='shelter')e.fear*=Math.pow(.97,dt);
       if(rules?.rule==='hunger')e.energy=Math.min(100,e.energy+dt*.25);
-      if(e.kind==='creature'||e.phase==='walking'||e.phase==='city') {
-        if(e.control!=='rooted') {
-          let target=null;let flee=false;
-          if(e.fear>.4){target=near.find(n=>n.genes.fang>.5);flee=true;}
-          if(!target&&e.energy<75)target=near.find(n=>n.kind==='plant'&&n.age>6);
-          if(!target&&e.genes.mind>.3)target=near.find(n=>n.kind==='home');
-          if(target){let a=Math.atan2(target.z-e.z,target.x-e.x);if(flee)a+=Math.PI;e.heading=a;}
-          else e.heading+=Math.sin(e.age*.25+e.motion)*dt*.32;
-          const pace=(e.phase==='city'?.11:e.phase==='walking'?.18:.3+e.genes.motion*.25)*(e.fear>.4?1.6:1);
-          if(!target||flee||dist(e,target)>1.25){e.x+=Math.cos(e.heading)*dt*pace;e.z+=Math.sin(e.heading)*dt*pace;}
-          const d=Math.hypot(e.x,e.z);if(d>RADIUS-1.2){e.x*=(RADIUS-1.2)/d;e.z*=(RADIUS-1.2)/d;e.heading+=Math.PI*.75;}
-        }
-      }
+      if(e.kind==='creature'||e.phase==='walking'||e.phase==='city')moveLife(this,e,dt,population);
       if(e.kind==='creature'&&e.energy<85){
         const meal=near.find(n=>n.kind==='plant'&&n.age>6&&dist(e,n)<1.7);
         if(meal){e.energy=Math.min(100,e.energy+dt*4);meal.energy-=dt*1.2;
@@ -138,9 +128,9 @@ export class World {
       if(e.knowledge>17&&e.faith!=='aware'){e.faith='aware';e.speech='are we your garden, or your experiment?';e.speechUntil=s.time+7;this.milestone('god','one of them looked up. "are we your garden, or your experiment?"',e);}
       if(e.age>e.talkAt) {e.talkAt=e.age+24+this.random()*22;
         if(e.genes.mind+e.genes.song>.7){e.speech=e.fear>.5?'the sky did that on purpose.':e.grief>.5?'something is missing.':e.phase==='walking'?'the view keeps changing.':e.love>.6?'can we keep this feeling?':e.society?'we should put a name on this place.':'i think i am getting used to existing.';e.speechUntil=s.time+5;}}
-      if(e.age>e.reproAt&&e.energy>50&&e.health>45&&e.kind!=='home'&&e.control!=='rooted'&&s.entities.length+births.length<LIMIT){
+      if((e.kind!=='plant'||near.filter(n=>n.kind==='plant').length<5)&&e.age>e.reproAt&&e.energy>50&&e.health>45&&e.kind!=='home'&&e.control!=='rooted'&&s.entities.length+births.length<LIMIT){
         e.reproAt=e.age+30+this.random()*25;
-        const mate=near.find(n=>n.age>12&&n.energy>40&&n.kind!=='home');
+        const mate=near.find(n=>n.age>24&&n.energy>40&&n.kind===e.kind&&n.control!=='rooted');
         if(mate||e.kind==='plant'){
           const g={};for(const k of GENE_KEYS)g[k]=clamp((e.genes[k]+(mate?.genes[k]??e.genes[k]))/2);
           if(this.random()<.16){const k=GENE_KEYS[Math.floor(this.random()*GENE_KEYS.length)];g[k]=clamp(g[k]+.3);}
@@ -151,6 +141,7 @@ export class World {
       }
       if(e.health<=0||e.age>1100+e.genes.flora*900)deaths.push(e.id);
     }
+    updateSettlements(this,dt);
     for(const b of births)this.plant(b.seeds,b.x,b.z,{...b,birth:true});
     for(const id of deaths)this.remove(id);
     for(const town of s.societies){town.age+=dt;if(!town.rule&&town.age>55){
@@ -165,7 +156,8 @@ export class World {
   advance(seconds) {const n=Math.floor(Math.min(1800,Math.max(0,seconds))*4);for(let i=0;i<n;i++)this.tick(.25);this.events=[];return n/4;}
   snapshot() {return clone(this.state);}
   static restore(raw) {
-    validate(raw);const w=new World(raw.seed);w.state=clone(raw);w.events=[];return w;
+    const migrated=clone(raw);if(migrated?.version===1)migrated.version=VERSION;
+    validate(migrated);const w=new World(migrated.seed);w.state=migrated;w.events=[];return w;
   }
 }
 export function validate(s) {
@@ -179,14 +171,17 @@ export function validate(s) {
   for(const e of s.entities){
     if(!Number.isInteger(e.id)||e.id<1||ids.has(e.id)||e.id>=s.nextId||!Array.isArray(e.seeds)||!e.seeds.length||e.seeds.length>3||e.seeds.some(k=>!Object.hasOwn(INGREDIENTS,k))||!e.genes)fail();ids.add(e.id);
     for(const k of ['x','z','age','energy','health','love','fear','grief','knowledge','generation','motion','heading','reproAt','talkAt','residents','size','pulse','bornAt'])if(!Number.isFinite(e[k]))fail();
+    if(!Array.isArray(e.parentIds)||e.parentIds.length>2||e.parentIds.some(id=>!Number.isInteger(id)||id<1))fail();
+    if(e.carrying!==undefined&&(!Number.isFinite(e.carrying)||e.carrying<0||e.carrying>10))fail();
+    if(e.activity!==undefined&&(typeof e.activity!=='string'||e.activity.length>80))fail();
     if(e.age<0||e.generation<1||!Number.isInteger(e.generation)||e.generation>100000)fail();
-    if(Math.hypot(e.x,e.z)>RADIUS+1||e.size<.1||e.size>4||!['plant','home','creature'].includes(e.kind)||!['wild','gentle','rooted'].includes(e.control)||!['seed','growing','mature','walking','city'].includes(e.phase))fail();
+    if(!validPosition(e.x,e.z)||e.size<.1||e.size>4||!['plant','home','creature'].includes(e.kind)||!['wild','gentle','rooted'].includes(e.control)||!['seed','growing','mature','walking','city'].includes(e.phase))fail();
     for(const k of GENE_KEYS)if(!Number.isFinite(e.genes[k])||e.genes[k]<0||e.genes[k]>1)fail();
     for(const k of ['name','memory','faith'])if(typeof e[k]!=='string'||e[k].length>400)fail();
     if(e.speech!==undefined&&(typeof e.speech!=='string'||e.speech.length>400||!Number.isFinite(e.speechUntil)))fail();
   }
   for(const p of s.patches){if(!['water','thorns','fire'].includes(p.type)||!['x','z','r','life','id'].every(k=>Number.isFinite(p[k]))||p.r<0||p.r>10)fail();}
-  for(const c of s.societies){if(typeof c.name!=='string'||c.name.length>80||!['x','z','id','age'].every(k=>Number.isFinite(c[k]))||![null,'kinship','hunger','shelter'].includes(c.rule))fail();}
+  for(const c of s.societies){for(const k of ['food','materials','built','population'])if(c[k]!==undefined&&(!Number.isFinite(c[k])||c[k]<0))fail();if(typeof c.name!=='string'||c.name.length>80||!['x','z','id','age'].every(k=>Number.isFinite(c[k]))||![null,'kinship','hunger','shelter'].includes(c.rule))fail();}
   for(const h of s.history)if(typeof h.text!=='string'||h.text.length>1000||!['id','t','x','z'].every(k=>Number.isFinite(h[k])))fail();
   if(Object.keys(s.discoveries).length>300)fail();
   for(const d of Object.values(s.discoveries))if(typeof d.name!=='string'||d.name.length>100||!Array.isArray(d.seeds)||d.seeds.length>3||d.seeds.some(k=>!Object.hasOwn(INGREDIENTS,k)))fail();

@@ -35,3 +35,11 @@ Record clip exports up to 20 seconds of the rendered world with a title and late
 `tools/browser-test.cjs` runs desktop/mobile interaction checks with Playwright from the local bundled runtime. Test output goes to `test-output/` (ignored by git).
 
 The current version is a broad first sandbox. It does not yet implement live online visits, unrestricted text generation, or a full civilization simulation.
+
+## Planet rebuild (v0.2)
+
+Scroll or pinch from a creature to the planet. At planet scale, tap a continent to descend. Drag to orbit; right-drag or Shift-drag travels over the surface. Inspect a creature to follow it. The upper navigation finds herds, settlements, and a living city when present.
+
+Start with the populated living-world scenario or an empty planet. The Worlds menu archives the current save before switching. Older v1 saves migrate to v2 without losing their organisms or milestones. This is a playable procedural foundation; the approved concept art remains a visual target.
+
+Run both simulation suites with `npm test`. Browser checks: `node tools/planet-browser-test.cjs` (requires the configured local Playwright/Chrome runtime).

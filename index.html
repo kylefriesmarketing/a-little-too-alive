@@ -7,7 +7,7 @@
   <meta name="description" content="Anything is a seed. Grow creatures, crossbreed buildings, and watch your world become a little too alive. A free experimental god game by Dirty Boy Devs.">
   <title>A Little Too Alive — a DIRTY BOY DEVS game</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="planet.css">
   <script type="importmap">{"imports":{"three":"./lib/three.module.min.js"}}</script>
 </head>
 <body>
@@ -18,9 +18,9 @@
     <header>
       <div class="brand"><a href="https://kylefriesmarketing.github.io/games/" class="house-link">↖ the house</a><h1>a little<br><em>too alive.</em></h1></div>
       <div class="world-status"><span class="status-dot"></span><button id="world-name" title="Rename your world">The first garden</button><span id="world-time">day 1</span><span id="visitor" hidden>visiting a postcard</span></div>
-      <div class="top-actions"><button id="sound" aria-label="Enable sound" aria-pressed="false">sound off</button><button id="record">record clip</button><button id="share">postcards ↗</button></div>
+      <div class="top-actions"><button id="worlds">worlds</button><button id="sound" aria-label="Enable sound" aria-pressed="false">sound off</button><button id="record">record clip</button><button id="share">postcards ↗</button></div>
     </header>
-    <div id="counts"><span><b id="population">0</b> alive</span><span><b id="discoveries">0</b> discoveries</span><span><b id="towns">0</b> societies</span></div>
+    <nav id="world-nav" aria-label="Explore your planet"><button id="planet-view">◎ <span>planet</span></button><button id="find-herd">herds</button><button id="find-town">settlements</button><button id="find-city">living city</button><span id="camera-scale">ECOSYSTEM</span></nav><div id="counts"><span><b id="population">0</b> alive</span><span><b id="discoveries">0</b> discoveries</span><span><b id="towns">0</b> societies</span></div>
     <aside id="workbench" class="panel">
       <div class="panel-heading"><span class="eyebrow">01 / THE SEED BENCH</span><button id="bench-close" class="mobile-only" aria-label="Close seed bench">×</button></div>
       <h2>anything is a seed.</h2><p class="muted">choose up to three ingredients.<br>let the world finish the thought.</p>
@@ -55,10 +55,10 @@
         <button data-tool="mutate"><span>※</span>mutate</button>
         <button class="mobile-only" id="notes-toggle"><span>≡</span>notes</button>
       </div>
-      <div class="bottom-caption"><span id="tool-hint">choose ingredients. plant a possibility.</span><span>drag to orbit · scroll / pinch to zoom</span></div>
+      <div class="bottom-caption"><span id="tool-hint">choose ingredients. plant a possibility.</span><span>drag to orbit · right-drag to travel · scroll / pinch to zoom</span></div>
     </div>
     <div id="intro" class="overlay">
-      <section class="intro-card"><span class="eyebrow">AN EXPERIMENT BY DIRTY BOY DEVS</span><div class="intro-symbol" aria-hidden="true">✳</div><h2>start with nothing.<br>grow something<br><em>unreasonable.</em></h2><p>a tooth. a heart. a brick.<br>everything is a seed. even the things<br>that really shouldn't be.</p><button id="start-free" class="primary">let me experiment <span>↗</span></button><button id="start-guided" class="secondary">show me the first steps</button><small>an early, growing sandbox · saves on this device</small></section>
+      <section class="intro-card"><span class="eyebrow">AN EXPERIMENT BY DIRTY BOY DEVS</span><div class="intro-symbol" aria-hidden="true">✳</div><h2>a world that<br>outgrows<br><em>its creator.</em></h2><p>Herds inherit. Civilizations grow.<br>Sometimes, the city walks away.<br>One planet. Yours to change.</p><button id="start-free" class="primary">explore this living world <span>↗</span></button><button id="start-empty" class="secondary">start an empty planet</button><button id="start-guided" class="text-button wide">show me the first steps</button><small>planet sandbox · procedural art · saves on this device</small></section>
     </div>
     <dialog id="modal"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" aria-label="Close dialog">×</button></div><div id="modal-content"></div></dialog>
     <div id="fatal" hidden role="alert"></div>

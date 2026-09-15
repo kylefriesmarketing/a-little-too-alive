@@ -1,7 +1,9 @@
 export const SAVE_KEY = 'a-little-too-alive-save';
-export const VERSION = 1;
-export const LIMIT = 150;
-export const RADIUS = 17;
+export const VERSION = 2;
+export const LIMIT = 180;
+import {LONGITUDE_LIMIT} from './planet.js';
+export {groundAt} from './planet.js';
+export const RADIUS = LONGITUDE_LIMIT;
 export const INGREDIENTS = {
   moss:  { name: 'Moss',  mark: '✳', color: '#b4d48a', desc: 'Roots. Sunlight. A tendency to spread.', genes: {flora: 1} },
   eye:   { name: 'Eye',   mark: '◉', color: '#b8c9f0', desc: 'Awareness. Curiosity. Eventually, questions.', genes: {mind: 1, motion: .6} },
@@ -45,4 +47,3 @@ export function nameOf(seeds,genes=genesOf(seeds)) {
   const adj = genes.heat>.5 ? 'Cinder' : genes.water>.5 ? 'Weeping' : genes.song>.5 ? 'Singing' : genes.love>.5 ? 'Tender' : genes.fang>.5 ? 'Hungry' : 'Watchful';
   return adj + ' ' + (kindOf(genes)==='home'?'Hearth':kindOf(genes)==='plant'?'Bloom':'Wanderer');
 }
-export function groundAt(x,z) { return .35 + Math.sin(x*.35)*.24 + Math.cos(z*.42)*.2 + Math.sin((x+z)*.4)*.14; }

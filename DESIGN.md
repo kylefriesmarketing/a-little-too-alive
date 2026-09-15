@@ -27,7 +27,7 @@ This is a finite local simulation, not unrestricted text-to-world AI. Cross-play
 
 ## THE HOUSE contract
 
-- Save: `a-little-too-alive-save`, version 1; `started`, `milestones`, `discoveries`, `stats` are cheap to read.
+- Save: `a-little-too-alive-save`, version 2 (migrates version 1); `started`, `milestones`, `discoveries`, `stats` are cheap to read.
 - Collectible: a heartseed in a glass bell, earned by `milestones.city`.
 - Doorway: a little terrarium; hint: `everything is a seed. even the house.`
 - Return link: https://kylefriesmarketing.github.io/games/
@@ -40,3 +40,13 @@ This is a finite local simulation, not unrestricted text-to-world AI. Cross-play
 3. Persist deeper creature relationships and culture.
 4. Add live visits only when a free, sustainable hosting design is chosen.
 5. Develop the most interesting player-generated moments, not resource grind.
+
+## Rebuild approved 2026-09-15
+
+Kyle rejected the original small disc island, primitive appearance, shallow behavior, and limited scale. He named Spore as the closest reference and requested a seamless camera from a whole planet to individual creatures. All four scenes matter: family herds and predation, working settlements, visibly inherited anatomy, and occupied living cities.
+
+He approved the generated art-direction study as "Much closer — use this as the visual target". Reference: assets/reference/art-direction.png. This is aspirational concept art, not a gameplay screenshot or a claim of achievable browser fidelity.
+
+The second playable foundation uses one spherical coordinate system for terrain, creatures, pointer picking, and camera navigation; a real globe; 4/6-legged articulated phenotypes; parenting, herd cohesion, hunting and fleeing; food collection and material-funded construction; procedural forest, terrain, and architecture; a clearly labeled populated scenario; empty-world creation; archived world switching; and v1-to-v2 save migration.
+
+Remaining gaps: detailed authored art, richer body editing, deeper society and belief systems, large-scale ecosystem simulation, richer living-city behavior, and real-time visits. The world is geographically broad but the simulation remains capped at 180 active entities. Existing snapshot visits and seed gifts are retained.
